@@ -1,0 +1,41 @@
+---
+title: "STT481Classification"
+author: "Sam Isken"
+date: "September 13, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+iris
+head(iris)
+```
+
+
+```{r}
+plot(iris$Sepal.Length ~ iris$Species)
+plot(iris$Sepal.Length ~ iris$Petal.Length)
+
+```
+
+
+Use the data training to predict the university 
+
+```{r}
+library(ISLR)
+College
+```
+
+```{r}
+College.train <- College[1:500, c("Outstate","Grad.Rate","Private")]
+College.test <- College[501:777, c("Outstate","Grad.Rate","Private")]
+```
+
+
+```{r}
+library(class)
+knn.pred <- knn(train = College.train[,1:2], test = College.test[,1:2], cl )
+```

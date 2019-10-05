@@ -1,0 +1,71 @@
+---
+title: "STT_481_Lec2"
+author: "Sam Isken"
+date: "September 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Introduction to Statistical Learning 
+-Examine data for binary, correlations and outliers 
+-After removing outlier correlation increased 
+-First thing to do : run a graph
+--check for correlation etc 
+
+Heart attack data set: Blue=no heart disease, Read=heart disease
+Goal 1: predict whether someone will have a heart attack 
+Goal 2: Understand what are risk factors of heart disease 
+
+Email Spam Detection
+4601 Emails sent 
+
+y: dependant, response target 
+x: predictor measurementm inputs regressorsm covariates, featrues 
+p: number of predictors 
+n: number of samples 
+
+(x1,y,1),,,,,(xn,yn) training data paiors 
+
+$$ x_i \in $\R$^p $$
+
+Regression vs. Classification 
+
+Y is quantitative: Regression 
+prostate cancer data 
+
+Y is categorical: Classification problem 
+heart atttack data, spam data 
+
+Objectives of Statistical Learning 
+Based on training data 
+Accurately predict response with unseen x 
+
+Supervised vs. Unsupervised learning methods (Ch 3-9, ch 10)
+
+Supervised: Given Y 
+Unsupervised: Y is unobserved 
+
+Supervised Learning 
+Setting: X = (x1,..xp) and Y 
+
+Relationship Y = f(x) =$\epsilon$
+where $\epsilon$ = error, mean of the error = 0 (measurement error) 
+
+Why estimate f? (Which is the goal of supervised learning)
+
+1. Prediction: predict response at new x 
+2. Inference: Which components of (x1,....,xp) are important in explaining Y 
+
+Goals of supervised learning methods 
+
+Prediction: since error is 0 
+yhat = fhat(x)
+
+Prediction errors: assume fhat and x are fixed 
+
+$\Expectation[y-yhat]^2 = \Expectation[f(x)+\epsilon-fhat(x)]^2 = E[f(x)-fhat(x)]^2\var(\epsilon)$
+
+ 

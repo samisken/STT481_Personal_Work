@@ -1,0 +1,15 @@
+---
+title: "STT_481_Hw_1"
+author: "Sam Isken"
+date: "September 2, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("swirl")
+```
+
+```{r}
+swirl()
+```

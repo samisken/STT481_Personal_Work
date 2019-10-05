@@ -1,0 +1,257 @@
+---
+title: "STT481Hw2"
+author: "Sam Isken"
+date: "October 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(car)
+library(MASS)
+```
+
+FS19 STT481: Homework 2
+(Due: Wednesday, October 18th, beginning of the class.)
+
+1. (10 pts) Finish the swirl course “Regression Models”. Finish Section 1-13. You can install and go to the
+course by using the following command lines.
+
+```{r}
+#library(swirl)
+#install_course("Regression_Models")
+#swirl()
+```
+
+2. (10 pts) Download the csv file sat.csv and read the description of the dataset below.
+
+```{r}
+sat <- read.csv("sat.csv")
+head(sat)
+summary(sat)
+```
+
+In 1982, average SAT scores were published with breakdowns of state-by-state performance in the United
+States. The average SAT scores varied considerably by state, with mean scores falling between 790 (South
+Carolina) to 1088 (Iowa). Two researchers examined compositional and demographic variables to examine to
+what extent these characteristics were tied to SAT scores. The variables in the data set were:
+
+• state: state name
+• sat: mean SAT score (verbal and quantitative combined)
+• takers: percentage of total eligible students (high school seniors) in the state who took the exam
+• income: median income of families of test takers, in hundreds of dollars.
+• years: average number of years that test takers had in social sciences, natural sciences, and humanities
+(combined)
+• public: percentage of test takers who attended public schools expend: state expenditure on secondary
+schools, in hundreds of dollars per student
+• rank: median percentile of ranking of test takers within their secondary school classes. Possible values
+range from 0-99, with 99th percentile students being the highest achieving.
+
+Fit a model with the sat as the response and expend, income, public and takers as predictors. Perform
+regression diagnostics on this model to answer the following questions. Display any plots that are relevent
+
+```{r}
+SAT_Model1 <- lm(sat~expend+income+public+takers ,data=sat)
+summary(SAT_Model1)
+plot(SAT_Model1)
+```
+
+(a) Check the constant variance assumption for the errors.
+
+```{r}
+ncvTest(SAT_Model1)
+```
+
+(b) Check the normality assumption.
+
+```{r}
+qqPlot(SAT_Model1, main="QQ Plot")
+
+sresid <- studres(SAT_Model1)
+
+hist(sresid, freq=FALSE,
+   main="Distribution of Studentized Residuals")
+xfit<-seq(min(sresid),max(sresid),length=40)
+yfit<-dnorm(xfit)
+lines(xfit, yfit)
+```
+
+Since our Normal Q-Q plot is relatively on the line we can assume normality. 
+
+
+(c) Check for large leverage points.
+```{r}
+# Influential Observations
+# added variable plots
+
+avPlots(SAT_Model1)
+# Cook's D plot
+# identify D values > 4/(n-k-1)
+cutoff <- 4/((nrow(mtcars)-length(SAT_Model1$coefficients)-2))
+plot(SAT_Model1, which=4, cook.levels=cutoff)
+# Influence Plot
+influencePlot(SAT_Model1, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+```
+
+
+(d) Check for the outliers.
+```{r}
+# Assessing Outliers
+outlierTest(SAT_Model1) # Bonferonni p-value for most extreme obs
+qqPlot(SAT_Model1, main="QQ Plot") #qq plot for studentized resid
+leveragePlots(SAT_Model1) # leverage plots
+```
+
+(e) Check the structure of the relationship between the predictors and the response.
+
+
+(f) Use pairs function in R to see the relationship between sat and other predictors. 
+
+```{r}
+pairs(sat)
+```
+
+You can see takers appears to have a quadratic relationship with sat. Include this quadratic effect in your current model
+and perform the regression diagnostics. Check the structure of the relationship between the predictors
+and the response again.
+
+```{r}
+SAT_Model2 <- lm(sat~expend+income+public+takers ,data=sat)
+
+```
+
+(g) Using the model in (a)-(e) (no quadratic effect), remove the large leverage points you found and perform
+the regression diagnostics. Check for large leverage points again.
+(h) Comment on which model we should use. The model in (f) or the model in (a)-(e) with the removal of
+large leverage points that you did in (g)?
+
+3. (10 pts) Question 2 in Section 4.7.
+
+2. It was stated in the text that classifying an observation to the class for which (4.12) is largest is equivalent to classifying an observation to the class for which (4.13) is largest. Prove that this is the case. In other words, under the assumption that the observations in the kth class are drawn from a $\text{N}(\mu_k,\sigma^2) $ distribution, the Bayes’ classiﬁer assigns an observation to the class for which the discriminant function is maximized.
+
+4. (10 pts) Question 5 in Section 4.7.
+
+5. We now examine the diﬀerences between LDA and QDA.
+
+(a) If the Bayes decision boundary is linear, do we expect LDA or QDA to perform better on the training set? On the test set? 
+
+(b) If the Bayes decision boundary is non-linear, do we expect LDA or QDA to perform better on the training set? On the test set? 
+
+(c) In general, as the sample size n increases, do we expect the test prediction accuracy of QDA relative to LDA to improve, decline, or be unchanged? Why?
+
+(d) True or False: Even if the Bayes decision boundary for a given problem is linear, we will probably achieve a superior test error rate using QDA rather than LDA because QDA is ﬂexible enough to model a linear decision boundary. Justify your answer.
+
+5. (5 pts) Question 6 in Section 4.7.
+
+6. Suppose we collect data for a group of students in a statistics class with variables $X_1$ =hours studied, $X_2$ =undergrad GPA, and Y = receive an A. We ﬁt a logistic regression and produce estimated coeﬃcient, $\hat{\beta}_{0}=-6, \hat{\beta}_{1}=0.05, \hat{\beta}_{2}=1$
+
+(a) Estimate the probability that a student who studies for 40h and has an undergrad GPA of 3.5 gets an A in the class. 
+(b) How many hours would the student in part (a) need to study to have a 50% chance of getting an A in the class?
+
+6. (5 pts) Question 9 in Section 4.7.
+
+9. This problem has to do with odds.
+
+(a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default? 
+(b) Suppose that an individual has a 16% chance of defaulting on her credit card payment. What are the odds that she will default?
+
+7. (10 pts) Download the csv file arthritis.csv. These data from Koch & Edwards (1988) from a double-blind clinical trial investigating a new treatment for rheumatoid arthritis. The data frame has 84 observations and 4 variables, which are:
+
+• Treatment: factor indicating treatment (Placebo, Treated).
+• Sex: factor indicating sex (Female, Male).
+• Age: age of patient.
+• Improved: factor indicating treatment outcome (No, Yes).
+
+(a) Fit a logistic regression with the Improved as the response and Treatment, Sex and Age as predictors
+
+```{r}
+arthritis <- read.csv("arthritis.csv")
+head(arthritis)
+summary(arthritis)
+```
+
+```{r}
+arth_Model1 <- glm(Improved~Treatment+Sex+Age,data=arthritis,family = binomial)
+summary(arth_Model1)
+plot(arth_Model1)
+```
+(b) Use log odds to interpret the coefficients $\hat{\beta}_1 ,\hat{\beta}_2, \hat{\beta}_3$
+(c) Use odds to interpret the coefficients $\hat{\beta}_1 ,\hat{\beta}_2, \hat{\beta}_3$
+(d) Construct 95% confidence intervals for the coefficients.
+
+```{r}
+
+```
+
+(e) Add the interaction Sex:Age in your model. For this model, for a one year increase in age, how much
+does the log odds of some improvement (versus none) increase? Explain it separately with respect to
+Sex
+
+8. (15 pts) Question 10 in Section 4.7.
+
+10. This question should be answered using the Weekly data set, which is part of the ISLR package. This data is similar in nature to the Smarket data from this chapter’s lab, except that it contains 1,089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.
+
+(a) Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns? 
+
+(b) Use the full data set to perform a logistic regression with Direction as the response and the ﬁve lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically signiﬁcant? If so, which ones? 
+
+(c) Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. 
+
+(d) Now ﬁt the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010). 
+
+(e) Repeat (d) using LDA. 
+
+(f) Repeat (d) using QDA. 
+
+(g) Repeat (d) using KNN with K = 1. 
+
+(h) Which of these methods appears to provide the best results on this data? 
+
+(i) Experiment with diﬀerent combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classiﬁer.
+
+
+9. (15 pts) Question 11 in Section 4.7.
+
+11. In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the Auto data set.
+
+(a) Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median. You can compute the median using the median() function. Note you may ﬁnd it helpful to use the data.frame() function to create a single data set containing both mpg01 and the other Auto variables.
+
+(b) Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and boxplots may be useful tools to answer this question. Describe your ﬁndings. 
+
+(c) Split the data into a training set and a test set. 
+
+(d) Perform LDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained? 
+
+(e) Perform QDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained? 
+
+(f) Perform logistic regression on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained? 
+
+(g) Perform KNN on the training data, with several values of K, in order to predict mpg01. Use only the variables that seemed most associated with mpg01 in (b). What test errors do you obtain? Which value of K seems to perform the best on this data set?
+
+10. (10 pts) Download the csv files zipcode_train.csv and zipcode_test.csv. Load and visualize the
+files using the following command lines. 
+
+```{r}
+train.dat <- read.csv("zipcode_train.csv")
+train.dat$Y <- as.factor(train.dat$Y)
+test.dat <- read.csv("zipcode_test.csv")
+test.dat$Y <- as.factor(test.dat$Y)
+COLORS <- c("white", "black")
+CUSTOM_COLORS <- colorRampPalette(colors = COLORS)
+vis <- function(i){
+par(pty = "s", mar = c(1, 1, 1, 1), xaxt = "n", yaxt = "n")
+z <- matrix(as.numeric(train.dat[i,1:256]), 16, 16)
+image(1:16,1:16,z[,16:1], col = CUSTOM_COLORS(256))
+}
+vis(2) # hand written 1 (from 1 to 1005)
+vis(1500) # hand written 2 (from 1006 to 1736)
+
+```
+
+In the dataset, you have 1736 training images and 462 test images, where each image is a handwritten digit and it can be either 1 or 2. The description of columns is below:
+
+• p1-256: the gray scale from -1 to 1.
+• Y: the digit, which is either 1 or 2.
+
+(a) Perform logistic regression, LDA, and KNN models.
+(b) Using the test.dat, which of these methods appears to provide the best results on the test data?

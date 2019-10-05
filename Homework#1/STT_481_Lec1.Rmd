@@ -1,0 +1,57 @@
+---
+title: "STT 481 Lecture 1"
+author: "Sam Isken"
+date: "August 30, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Impressive growth of language, Wickham won an award 
+C++ can be sused to speed up processes in R 
+Advanced visualization and statistical analysis 
+
+Examples of normality testing in R 
+```{r}
+plot(density(x))
+```
+
+```{r}
+shapiro.test(x)
+```
+
+```{r}
+#Finish writing 
+plot(density(x1))
+```
+
+```{r}
+ks.test(x1,x2)
+```
+
+A/B Testubg 
+2 advertisements : are they significantly different? 
+```{r}
+#finish typing prop test 
+
+```
+
+Lahman = baseball data 
+
+k-means: unsupervised learning method 
+
+?before function to get information on it
+
+
+homework 1 notes 
+
+```{r}
+cars
+t.test(cars$speed,cars$dist)
+```
+
+submit both HTML and RMD
+
+Finish R programming sections 1-15 
