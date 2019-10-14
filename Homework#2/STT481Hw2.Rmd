@@ -17,11 +17,13 @@ FS19 STT481: Homework 2
 1. (10 pts) Finish the swirl course “Regression Models”. Finish Section 1-13. You can install and go to the
 course by using the following command lines.
 
-```{r}
+```{r} 
 #library(swirl)
 #install_course("Regression_Models")
 #swirl()
 ```
+
+I have included the pictures of my Swirl completion in the attached folder (zip file)
 
 2. (10 pts) Download the csv file sat.csv and read the description of the dataset below.
 
@@ -53,6 +55,7 @@ regression diagnostics on this model to answer the following questions. Display 
 ```{r}
 SAT_Model1 <- lm(sat~expend+income+public+takers ,data=sat)
 summary(SAT_Model1)
+par(mfrow = c(2, 2))
 plot(SAT_Model1)
 ```
 
@@ -60,15 +63,24 @@ plot(SAT_Model1)
 
 ```{r}
 ncvTest(SAT_Model1)
+plot(SAT_Model1,3)
 ```
+
+From this we see our errors are relatively homoskedastic around the line with 3 outliers (25,50,29). This could be improved by transforming out outcome variable but we can say that the assumption for constant error variance us fuffilled enough to proceed with our model. 
+
 
 (b) Check the normality assumption.
 
 ```{r}
+#Display both plots at the same time 
+par(mfrow = c(1, 2))
+#Create a QQ plot to see the root - standardized residuals 
 qqPlot(SAT_Model1, main="QQ Plot")
 
+#Compute studentized residuals: Like standardized residuals, these are normalized to unit variance, but the Studentized version is fitted ignoring the current data point. (They are sometimes called jackknifed residuals).
 sresid <- studres(SAT_Model1)
 
+#Plot studentized residuals and compare how they fall in comparison to a normal distribution
 hist(sresid, freq=FALSE,
    main="Distribution of Studentized Residuals")
 xfit<-seq(min(sresid),max(sresid),length=40)
@@ -76,30 +88,33 @@ yfit<-dnorm(xfit)
 lines(xfit, yfit)
 ```
 
-Since our Normal Q-Q plot is relatively on the line we can assume normality. 
+As we can see from these plots our residuals are distributed roughly normal. 
+Since our Normal Q-Q plot is relatively on the line we can assume normality of the residuals (shown by both regular and studentized residuals). 
 
 
 (c) Check for large leverage points.
 ```{r}
-# Influential Observations
-# added variable plots
+#Display 2 plots 
+par(mfrow = c(2, 2))
 
+#added variable plots: These functions construct added-variable, also called partial-regression, plots for linear and generalized linear models
 avPlots(SAT_Model1)
 # Cook's D plot
-# identify D values > 4/(n-k-1)
-cutoff <- 4/((nrow(mtcars)-length(SAT_Model1$coefficients)-2))
+#Set the cutoff value for Cook's Distance as : 4/(n-k-1)
+cutoff <- 4/((nrow(sat)-length(SAT_Model1$coefficients)-2))
 plot(SAT_Model1, which=4, cook.levels=cutoff)
 # Influence Plot
-influencePlot(SAT_Model1, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance" )
+influencePlot(SAT_Model1, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance (Based on computed cutoff value)" )
 ```
 
+As we can see points 22, 29, 35 and 50 are considered large leverage points. This makes sense as all of these points (except 35 & 22) were considered outliers so it is logical that are they are having undue influence on the model
 
 (d) Check for the outliers.
 ```{r}
-# Assessing Outliers
-outlierTest(SAT_Model1) # Bonferonni p-value for most extreme obs
-qqPlot(SAT_Model1, main="QQ Plot") #qq plot for studentized resid
-leveragePlots(SAT_Model1) # leverage plots
+#Find outliers, plot standardized residuals, find leverage points 
+outlierTest(SAT_Model1) 
+qqPlot(SAT_Model1, main="QQ Plot") 
+leveragePlots(SAT_Model1)
 ```
 
 (e) Check the structure of the relationship between the predictors and the response.
@@ -116,8 +131,8 @@ and perform the regression diagnostics. Check the structure of the relationship 
 and the response again.
 
 ```{r}
-SAT_Model2 <- lm(sat~expend+income+public+takers ,data=sat)
-
+SAT_Model2 <- lm(sat~expend+income+public+takers^2 ,data=sat)
+plot(SAT_Model2)
 ```
 
 (g) Using the model in (a)-(e) (no quadratic effect), remove the large leverage points you found and perform
@@ -128,6 +143,24 @@ large leverage points that you did in (g)?
 3. (10 pts) Question 2 in Section 4.7.
 
 2. It was stated in the text that classifying an observation to the class for which (4.12) is largest is equivalent to classifying an observation to the class for which (4.13) is largest. Prove that this is the case. In other words, under the assumption that the observations in the kth class are drawn from a $\text{N}(\mu_k,\sigma^2) $ distribution, the Bayes’ classiﬁer assigns an observation to the class for which the discriminant function is maximized.
+
+In order to implement the Bayes Classifier we have to find the class (k) for which 
+
+$$ p_{k}(x)=\frac{\pi_{k}(1 / \sqrt{2 \pi} \sigma) e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{k}\right)^{2}}}{\sum_{l=1}^{K} \pi_{l}(1 / \sqrt{2 \pi} \sigma) e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{l}\right)^{2}}}=\frac{\pi_{k} e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{k}\right)^{2}}}{\sum_{l=1}^{K} \pi_{l} e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{l}\right)^{2}}} $$
+is maximized. To do this we take the log of $ p_{k}(x)$
+
+$$ \log p_{k}(x)=\log \pi_{k}-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{k}\right)^{2}-\log \sum_{l=1}^{K} \pi_{l} e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{l}\right)^{2}} $$
+We then set $log{\pi}_k = 0$ thus resulting in:
+
+$$ 0 = \log \pi_{k}-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{k}\right)^{2}-\log \sum_{l=1}^{K} \pi_{l} e^{-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{l}\right)^{2}} $$
+Since the last summation is independant of k we can manipulate our statement to be: 
+
+$$ \log \pi_{k}-\left(1 / 2 \sigma^{2}\right)\left(x-\mu_{k}\right)^{2}=\log \pi_{k}-\frac{1}{2 \sigma^{2}} x^{2}+\frac{\mu_{k}}{\sigma^{2}} x-\frac{\mu_{k}^{2}}{2 \sigma^{2}} $$ 
+
+From here we can find the largest k for which: 
+
+$$ \delta_{k}(x)=\frac{\mu_{k}}{\sigma^{2}} x-\frac{\mu_{k}^{2}}{2 \sigma^{2}}+\log \pi_{k}$$ 
+
 
 4. (10 pts) Question 5 in Section 4.7.
 
