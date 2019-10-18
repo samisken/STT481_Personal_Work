@@ -12,9 +12,9 @@ library(MASS)
 ```
 
 FS19 STT481: Homework 2
-(Due: Wednesday, October 18th, beginning of the class.)
+(Due: Friday, October 18th, beginning of the class.)
 
-1. (10 pts) Finish the swirl course “Regression Models”. Finish Section 1-13. You can install and go to the
+1. (10 pts) Finish the swirl course Regression Models. Finish Sections 1-13. You can install and go to the
 course by using the following command lines.
 
 ```{r} 
@@ -38,16 +38,22 @@ States. The average SAT scores varied considerably by state, with mean scores fa
 Carolina) to 1088 (Iowa). Two researchers examined compositional and demographic variables to examine to
 what extent these characteristics were tied to SAT scores. The variables in the data set were:
 
-• state: state name
-• sat: mean SAT score (verbal and quantitative combined)
-• takers: percentage of total eligible students (high school seniors) in the state who took the exam
-• income: median income of families of test takers, in hundreds of dollars.
-• years: average number of years that test takers had in social sciences, natural sciences, and humanities
+state: state name
+
+sat: mean SAT score (verbal and quantitative combined)
+
+takers: percentage of total eligible students (high school seniors) in the state who took the exam
+
+income: median income of families of test takers, in hundreds of dollars.
+
+years: average number of years that test takers had in social sciences, natural sciences, and humanities
 (combined)
-• public: percentage of test takers who attended public schools expend: state expenditure on secondary
-schools, in hundreds of dollars per student
-• rank: median percentile of ranking of test takers within their secondary school classes. Possible values
-range from 0-99, with 99th percentile students being the highest achieving.
+
+public: percentage of test takers who attended public schools 
+
+expend: state expenditure on secondary schools, in hundreds of dollars per student
+
+rank: median percentile of ranking of test takers within their secondary school classes. Possible values range from 0-99, with 99th percentile students being the highest achieving.
 
 Fit a model with the sat as the response and expend, income, public and takers as predictors. Perform
 regression diagnostics on this model to answer the following questions. Display any plots that are relevent
@@ -113,12 +119,20 @@ As we can see points 22, 29, 35 and 50 are considered large leverage points. Thi
 ```{r}
 #Find outliers, plot standardized residuals, find leverage points 
 outlierTest(SAT_Model1) 
+par(mfrow = c(2, 2))
 qqPlot(SAT_Model1, main="QQ Plot") 
 leveragePlots(SAT_Model1)
 ```
 
+As we can see points 29 and 50 are outliers. 
+
 (e) Check the structure of the relationship between the predictors and the response.
 
+```{r}
+summary(SAT_Model1)
+```
+
+The only predictors that are significant are 'expend' and 'takers'.Thus, the structure is that this model does not appear to be a great method of predicting SAT scores. 
 
 (f) Use pairs function in R to see the relationship between sat and other predictors. 
 
@@ -131,18 +145,49 @@ and perform the regression diagnostics. Check the structure of the relationship 
 and the response again.
 
 ```{r}
-SAT_Model2 <- lm(sat~expend+income+public+takers^2 ,data=sat)
+takers2 <- sat$takers^2
+SAT_Model2 <- lm(sat~expend+income+public+takers2 ,data=sat)
+par(mfrow = c(2, 2))
 plot(SAT_Model2)
+summary(SAT_Model2)
 ```
+
+This made our QQ plot perform better (closer to a normal distribution) and caused expend to become insignificant. Thus, the only significant predictor in this model is takers^2.
 
 (g) Using the model in (a)-(e) (no quadratic effect), remove the large leverage points you found and perform
 the regression diagnostics. Check for large leverage points again.
-(h) Comment on which model we should use. The model in (f) or the model in (a)-(e) with the removal of
-large leverage points that you did in (g)?
+
+```{r}
+data_rm <- c(22, 29, 35,50)
+SAT_data2 <- sat[-data_rm,]
+SAT_Model3 <- lm(sat~expend+income+public+takers ,data=SAT_data2)
+summary(SAT_Model3)
+par(mfrow = c(2, 2))
+plot(SAT_Model3)
+```
+
+```{r}
+#Display 2 plots 
+par(mfrow = c(2, 2))
+
+#added variable plots: These functions construct added-variable, also called partial-regression, plots for linear and generalized linear models
+avPlots(SAT_Model3)
+# Cook's D plot
+#Set the cutoff value for Cook's Distance as : 4/(n-k-1)
+cutoff <- 4/((nrow(SAT_data2)-length(SAT_Model3$coefficients)-2))
+plot(SAT_Model3, which=4, cook.levels=cutoff)
+# Influence Plot
+influencePlot(SAT_Model3, id.method="identify", main="Influence Plot", sub="Circle size is proportial to Cook's Distance (Based on computed cutoff value)" )
+
+```
+
+(h) Comment on which model we should use. The model in (f) or the model in (a)-(e) with the removal of large leverage points that you did in (g)?
+
+The removal of these outliers actually caused us to end up with more outliers. 
 
 3. (10 pts) Question 2 in Section 4.7.
 
-2. It was stated in the text that classifying an observation to the class for which (4.12) is largest is equivalent to classifying an observation to the class for which (4.13) is largest. Prove that this is the case. In other words, under the assumption that the observations in the kth class are drawn from a $\text{N}(\mu_k,\sigma^2) $ distribution, the Bayes’ classiﬁer assigns an observation to the class for which the discriminant function is maximized.
+2. It was stated in the text that classifying an observation to the class for which (4.12) is largest is equivalent to classifying an observation to the class for which (4.13) is largest. Prove that this is the case. In other words, under the assumption that the observations in the kth class are drawn from a $\text{N}(\mu_k,\sigma^2) $ distribution, the Bayes Classifier assigns an observation to the class for which the discriminant function is maximized.
 
 In order to implement the Bayes Classifier we have to find the class (k) for which 
 
@@ -164,36 +209,86 @@ $$ \delta_{k}(x)=\frac{\mu_{k}}{\sigma^{2}} x-\frac{\mu_{k}^{2}}{2 \sigma^{2}}+\
 
 4. (10 pts) Question 5 in Section 4.7.
 
-5. We now examine the diﬀerences between LDA and QDA.
+5. We now examine the differences between LDA and QDA.
 
 (a) If the Bayes decision boundary is linear, do we expect LDA or QDA to perform better on the training set? On the test set? 
 
+We expect the QDA to perform better than the LDA on the training set because it is more flexible. We expect the LDA to perform better than the QDA on the on the test set because it is optimized using the Baye's Decision boundary shown to maximize the classification in #2.  
+
 (b) If the Bayes decision boundary is non-linear, do we expect LDA or QDA to perform better on the training set? On the test set? 
+
+Since LDA, given the name, assumes Multivariate normality, we expect QDA to out perform it on both sets. 
 
 (c) In general, as the sample size n increases, do we expect the test prediction accuracy of QDA relative to LDA to improve, decline, or be unchanged? Why?
 
-(d) True or False: Even if the Bayes decision boundary for a given problem is linear, we will probably achieve a superior test error rate using QDA rather than LDA because QDA is ﬂexible enough to model a linear decision boundary. Justify your answer.
+Because the flexibility of QDA > LDA we use LDA as n-> infinity. Since LDA assumes homogeneity of variance and QDA does not the increasing sample size is not a problem for QDA and our accuracy will increase for our test prediction. 
+
+(d) True or False: Even if the Bayes decision boundary for a given problem is linear, we will probably achieve a superior test error rate using QDA rather than LDA because QDA is flexible enough to model a linear decision boundary. Justify your answer.
+
+False. Because LDA assumes Multivariate normality and homogeneity of residuals it will fit a linear Baye's decision boundary better. QDA could overfit this due to not recognizing the linearity. 
 
 5. (5 pts) Question 6 in Section 4.7.
 
 6. Suppose we collect data for a group of students in a statistics class with variables $X_1$ =hours studied, $X_2$ =undergrad GPA, and Y = receive an A. We ﬁt a logistic regression and produce estimated coeﬃcient, $\hat{\beta}_{0}=-6, \hat{\beta}_{1}=0.05, \hat{\beta}_{2}=1$
 
 (a) Estimate the probability that a student who studies for 40h and has an undergrad GPA of 3.5 gets an A in the class. 
+
+$$ Y=-6+.05x+x+\epsilon $$
+$$ \text{probability}(x) = \frac{e^Y}{1+e^Y} $$
+
+```{r}
+probx <- ((exp(1))^(-6+(.05*40)+3.5))/(1+(exp(1))^(-6+(.05*40)+3.5))
+probx
+```
+
+Thus, the estimated probability a student scores an A given 40 hr study and a 3.5 GPA is .3775407 .
+
 (b) How many hours would the student in part (a) need to study to have a 50% chance of getting an A in the class?
+
+We could do this through algebra, but, We have R! 
+Let us simply use our probx and plug in a few values. 
+
+```{r}
+probx2 <- ((exp(1))^(-6+(.05*45)+3.5))/(1+(exp(1))^(-6+(.05*45)+3.5))
+probx2 <- ((exp(1))^(-6+(.05*45)+3.5))/(1+(exp(1))^(-6+(.05*45)+3.5))
+probx2 <- ((exp(1))^(-6+(.05*50)+3.5))/(1+(exp(1))^(-6+(.05*50)+3.5))
+probx2
+```
+
+Thus, a student would need to study 50 hours. 
 
 6. (5 pts) Question 9 in Section 4.7.
 
 9. This problem has to do with odds.
 
 (a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default? 
+
+To use odds we use the funcion:
+
+odds:
+
+$$ \frac{p(x)}{1-p(x)} $$
+
+after transformation this becomes: 
+
+$$ \frac{.37}{1-.37} = .27 $$  
+
+Thus, 27% percent will default (on average, according to our model). 
+
 (b) Suppose that an individual has a 16% chance of defaulting on her credit card payment. What are the odds that she will default?
+
+The same logic applies: 
+
+$$ \frac{.16}{1-.16} = .19 $$  
+Thus, 19% percent chance of default (on average, according to our model). 
+
 
 7. (10 pts) Download the csv file arthritis.csv. These data from Koch & Edwards (1988) from a double-blind clinical trial investigating a new treatment for rheumatoid arthritis. The data frame has 84 observations and 4 variables, which are:
 
-• Treatment: factor indicating treatment (Placebo, Treated).
-• Sex: factor indicating sex (Female, Male).
-• Age: age of patient.
-• Improved: factor indicating treatment outcome (No, Yes).
+Treatment: factor indicating treatment (Placebo, Treated).
+Sex: factor indicating sex (Female, Male).
+Age: age of patient.
+Improved: factor indicating treatment outcome (No, Yes).
 
 (a) Fit a logistic regression with the Improved as the response and Treatment, Sex and Age as predictors
 
@@ -205,32 +300,78 @@ summary(arthritis)
 
 ```{r}
 arth_Model1 <- glm(Improved~Treatment+Sex+Age,data=arthritis,family = binomial)
+par(mfrow = c(2, 2))
 summary(arth_Model1)
 plot(arth_Model1)
 ```
 (b) Use log odds to interpret the coefficients $\hat{\beta}_1 ,\hat{\beta}_2, \hat{\beta}_3$
+
+Given someone is treated (TreatmentTreated=1) we expect a 1.76 increase in log odds of improved health (with all other variables held constant)
+
+Given someone is Male (SexMale=1) we expect a -1.49 decrease in log odds of improved health (with all other variables held constant)
+
+Given a 1 unit increase in age (in yearS) we expect a .049 increase in log odds of improved health (with all other variables held constant)
+
 (c) Use odds to interpret the coefficients $\hat{\beta}_1 ,\hat{\beta}_2, \hat{\beta}_3$
+
+
+Given someone is treated (TreatmentTreated=1) we expect a $e^{1.76}$ increase in odds of improved health (with all other variables held constant)
+
+Given someone is Male (SexMale=1) we expect a $e^{-1.49}$ decrease in odds of improved health (with all other variables held constant)
+
+Given a 1 unit increase in age (in yearS) we expect a e^{.049} increase in  odds of improved health (with all other variables held constant)
+
+
 (d) Construct 95% confidence intervals for the coefficients.
 
 ```{r}
-
+confint(arth_Model1)
 ```
 
-(e) Add the interaction Sex:Age in your model. For this model, for a one year increase in age, how much
-does the log odds of some improvement (versus none) increase? Explain it separately with respect to
-Sex
+(e) Add the interaction Sex:Age in your model. For this model, for a one year increase in age, how much does the log odds of some improvement (versus none) increase? Explain it separately with respect to Sex.
+
+```{r}
+arth_Model2 <- glm(Improved~Treatment+Sex+Age+Sex:Age,data=arthritis,family = binomial)
+par(mfrow = c(2, 2))
+summary(arth_Model2)
+plot(arth_Model2)
+```
 
 8. (15 pts) Question 10 in Section 4.7.
 
-10. This question should be answered using the Weekly data set, which is part of the ISLR package. This data is similar in nature to the Smarket data from this chapter’s lab, except that it contains 1,089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.
+10. This question should be answered using the Weekly data set, which is part of the ISLR package. This data is similar in nature to the Smarket data from this chapters lab, except that it contains 1,089 weekly returns for 21 years, from the beginning of 1990 to the end of 2010.
 
 (a) Produce some numerical and graphical summaries of the Weekly data. Do there appear to be any patterns? 
 
-(b) Use the full data set to perform a logistic regression with Direction as the response and the ﬁve lag variables plus Volume as predictors. Use the summary function to print the results. Do any of the predictors appear to be statistically signiﬁcant? If so, which ones? 
+```{r}
+library(ISLR)
+Weekly
+pairs(Weekly)
+summary(Weekly)
+```
+
+(b) Use the full data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors. 
+
+```{r}
+Weekly_Model1 <- glm(Direction~Lag1+Lag2+Lag3+Lag4+Lag5+Volume, data=Weekly,family=binomial)
+```
+
+Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones? 
+
+```{r}
+summary(Weekly_Model1)
+```
 
 (c) Compute the confusion matrix and overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. 
 
-(d) Now ﬁt the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010). 
+```{r}
+probs <- predict(Weekly_Model1, type = "response")
+pred.Weekly_Model1 <- rep("Down", length(probs))
+pred.Weekly_Model1[probs > 0.5] <- "Up"
+table(pred.Weekly_Model1, Direction)
+```
+
+(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010). 
 
 (e) Repeat (d) using LDA. 
 
