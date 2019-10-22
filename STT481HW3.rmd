@@ -1,0 +1,207 @@
+---
+title: "STT481HW3"
+author: "Sam Isken"
+date: "October 20, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# FS19 STT481: Homework 3
+(Due: Wednesday, November 6th, beginning of the class.)
+100 points total
+
+1. (20 pts) Finish the swirl course “Exploratory Data Analysis”. Finish Section 1-10 (no need to do 11-15).
+
+You can install and go to the course by using the following command lines.
+
+```{r}
+#library(swirl)
+#install_course("Exploratory_Data_Analysis")
+#swirl()
+```
+
+2. (20 pts) In this question, we are going to perform cross-validation methods in order to choose a better logistic regression model.
+
+Consider Weekly data set, where we want to predict Direction using Lag1 and Lag2 predictors. To load the Weekly data set, use the following command lines.
+
+```{r}
+library(ISLR)
+data("Weekly")
+```
+
+```{r}
+head(Weekly)
+pairs(Weekly)
+```
+
+Suppose now I have two candidate models:
+
+$$ \begin{array}{l}{\text { (i) } \log \frac{\operatorname{Pr}\left(\text {Direction}==^{n} U p^{n}\right)}{1-\operatorname{Pr}\left(\text {Direction}==^{n} U_{p^{n}}\right)}=\beta_{0}+\beta_{1} \operatorname{Lag} 1+\beta_{2} \text { Lag2; }} \\ {\text { (ii) } \log \frac{\operatorname{Pr}\left(\text {Direction}==^{n} U p^{n}\right)}{1-\operatorname{Pr}\left(\text { Direction }==^{n} U_{p^{n}}\right)}=\beta_{0}+\beta_{1} \operatorname{Lag} 1+\beta_{2} \operatorname{Lag} 2+\beta_{3} \operatorname{Lag} 1^{2}+\beta_{4} \operatorname{Lag} 2^{2}}\end{array}  $$
+
+(a) For each model, compute the LOOCV (leave one out cross-validation) estimate for the test error by following the steps:
+
+Write a for loop from i = 1 to i = n, where n is the number of observations in the data set, 
+
+```{r}
+n <- nrow(Weekly) # Number observations in data set 
+n_vec <- seq(1,n, by=1) # Fixed vector 
+
+#Initialize empty vectors to fill with model results (0 or 1)
+i_list <- vector()
+ii_list <- vector()
+
+tracking_df <- data.frame(matrix(ncol = 3, nrow = n))
+names(tracking_df)[1] <- "Observation"
+tracking_df$Observation <- n_vec
+names(tracking_df)[2] <- "Predicted_Prob_Correct_Model_i"
+names(tracking_df)[3] <- "Predicted_Prob_Correct_Model_ii"
+
+model_calc <- function(Weekly){
+  for(i in n_vec){
+    Weekly_working_df <- Weekly[-i,] # Create subset of data removing ith row 
+    
+    logit_model_i_weekly_sub <- glm(Direction~Lag1+Lag2, data = Weekly_working_df, family = "binomial")
+    logit_model_ii_weekly_sub <- glm(Direction~Lag1+Lag2+I(Lag1^2)+I(Lag2^2), data = Weekly_working_df, family = "binomial")
+    
+    posterior_prob_i <-  predict(logit_model_i_weekly_sub,Weekly,type="response")[i] # Calculate posterior probability of market movement on ith observation
+    posterior_prob_ii <- predict(logit_model_ii_weekly_sub,Weekly,type="response")[i] # Calculate posterior probability of market movement on ith observation
+    print(posterior_prob_i)
+    print(posterior_prob_ii)
+    if(posterior_prob_i>.5){
+      i_list <- append(i_list,i)
+    }
+
+    if(posterior_prob_ii>.5){
+      ii_list <- append(ii_list,i)
+    }
+    #i_list
+    #ii_list
+        
+  }
+}
+
+model_calc(Weekly)
+
+
+
+```
+
+```{r}
+i_list
+```
+
+that performs each of the following steps:
+
+i. Fit a logistic regression model using all but the ith observation to predict Direction using Lag1 and Lag2 for model (i) and using Lag1, Lag2, I(Lag1ˆ2), I(Lag2ˆ2) for model (ii).
+
+ii. Compute the posterior probability of the market moving up for the ith observation.
+
+iii. Use the posterior probability for the ith observation and use the threshold 0.5 in order to predict
+whether or not the market moves up.
+
+iv. Determine whether or not an error was made in predicting the direction for the ith observation. If an error was made, then indicate this as a 1, and otherwise indicate it as a 0.
+
+Take the average of the n numbers obtained in iv in order to obtain the LOOCV estimate for the test error.
+
+(b) Comment on the results. Which of the two models appears to provide the better result on this data based on the LOOCV estimates?
+
+(c) The cv.glm function can be used to computer the LOOCV test error estimate. Run the following command lines and see whether the results are the same as the ones you did in (a).
+
+```{r}
+library(boot)
+# Since the response is a binary variable an
+# appropriate cost function for glm.cv is
+cost <- function(r, pi = 0) mean(abs(r - pi) > 0.5)
+glm.fit <- glm(Direction ~ Lag1 + Lag2, data = Weekly, family = binomial)
+cv.error.1 <- cv.glm(Weekly, glm.fit, cost, K = nrow(Weekly))$delta[1]
+glm.fit <- glm(Direction ~ Lag1 + Lag2 + I(Lag1^2) + I(Lag2^2), data = Weekly, family = binomial)
+cv.error.2 <- cv.glm(Weekly, glm.fit, cost, K = nrow(Weekly))$delta[1]
+```
+
+
+(d) For each model, compute the 10-fold CV estimate for the test error by following the steps:
+Run the following command lines.
+
+```{r}
+set.seed(10) ## the seed can be arbitrary but we use 10 for the sake of consistency
+fold.index <- cut(sample(1:nrow(Default)), breaks=10, labels=FALSE)
+```
+
+Write a for loop from i = 1 to i = 10 and in the loop, perform each of the following steps:
+i. Perform KNN using all but the observations that satisfy fold.index==i and predict default for the observations that satisfy fold.index==i. (Hint: use knn function and return the class. No need to compute posterior probabilities. That is, use prob = FALSE in the knn function and then use the return class of knn).
+
+ii. Compute the error rate was made in predicting the direction for those observations that satisfy fold.index==i. Take the average of the 10 numbers obtained in ii in order to obtain the 10-fold CV estimate for the test error.
+
+(e) Comment on the results. Which of the tuning parameter K’s appears to provide the best results on this data based on the 10-fold CV estimates?
+
+4. (10 pts) In this question, we are going to use the zipcode data in the HW2 Q10.
+
+(a) Using the zipcode_train.csv data, perform a 10-fold cross-validation using KNNs with K = 1, 2, . . . , 30 and choose the best tuning parameter K.
+
+(b) Using the zipcode_test.csv and comparing the KNN you obtained in (a) with logsitic regression and LDA, which of these methods appears to provide the best results on the test data? Is this the same conclusion that you made in HW2?
+
+(c) Using the KNN you obtained above in (a), show two of those handwritten digits that this KNN cannot identify correctly.
+
+5. (10 pts) Question 8 in Section 5.4.
+
+8. We will now perform cross-validation on a simulated data set.
+(a) Generate a simulated data set as follows:
+
+```{r}
+set.seed(1)
+y=rnorm(100)
+x=rnorm(100)
+y=x-2*x^2+rnorm (100)
+```
+In this data set, what is n and what is p? Write out the model used to generate the data in equation form.
+
+(b) Create a scatterplot of X against Y . Comment on what you ﬁnd.
+
+(c) Set a random seed, and then compute the LOOCV errors that result from ﬁtting the following four models using least squares:
+
+$$ \begin{array}{l}{\text { i. } Y=\beta_{0}+\beta_{1} X+\epsilon} \\ {\text { ii. } Y=\beta_{0}+\beta_{1} X+\xi_{2} X^{2}+\epsilon} \\ {\text { ii. } Y=\beta_{0}+\beta_{1} X+\beta_{2} X^{2}+\beta_{3} X^{3}+\epsilon} \\ {\text { iv. } Y=\beta_{0}+\beta_{1} X+\beta_{2} X^{2}+\beta_{3} X^{3}+\beta_{4} X^{4}+\epsilon}\end{array} $$
+
+Note you may ﬁnd it helpful to use the data.frame() function to create a single data set containing both X and Y . 
+
+(d) Repeat (c) using another random seed, and report your results. Are your results the same as what you got in (c)? Why? 
+
+(e) Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer. 
+
+(f) Comment on the statistical signiﬁcance of the coeﬃcient estimates that results from ﬁtting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+
+6. (10 pts) Question 8 in Section 6.8.
+
+8. In this exercise, we will generate simulated data, and will then use this data to perform best subset selection.
+
+(a) Use the rnorm() function to generate a predictor X of length n = 100, as well as a noise vector $\epsilon$ of length n = 100.
+
+(b) Generate a response vector Y of length n = 100 according to the model
+
+$Y=\beta_{0}+\beta_{1} X+\beta_{2} X^{2}+\beta_{3} X^{3}+\epsilon$
+
+where $\beta_0,\beta_1,\beta_2,\beta_3$ are constants of your choice.
+
+(c) Use the regsubsets() function to perform best subset selection in order to choose the best model containing the predictors $X,X^2,...,X^10$. What is the best model obtained according to Cp, BIC, and adjustedR2? Show some plots to provide evidence for your answer, and report the coeﬃcients of the best model obtained. Note you will need to use the data.frame() function to create a single data set containing both X and Y .
+
+7. (10 pts) In this question, we will predict the number of applications received using the other variables in the College data set.
+
+First, we split the data set into a training set and a test set by using the following command lines.
+
+```{r}
+library(ISLR)
+data("College")
+set.seed(20)
+train <- sample(nrow(College), 600)
+College.train <- College[train, ]
+College.test <- College[-train, ]
+```
+
+(a) Fit a linear model using least squares on the training set, and report the test error obtained.
+
+(b) Fit a ridge regression model on the training set, with λ chosen by cross-validation. Report the test error obtained.
+
+(c) Fit a lasso model on the training set, with λ chosen by crossvalidation. Report the test error obtained, along with the number of non-zero coefficient estimates.
+
