@@ -28,7 +28,7 @@ library(MLmetrics)
 
 ***
 
-1. (20 pts) Finish the swirl course xploratory Data Analysis. Finish Section 1-10 (no need to do 11-15).
+1. (20 pts) Finish the swirl course Exploratory Data Analysis. Finish Section 1-10 (no need to do 11-15).
 
 You can install and go to the course by using the following command lines.
 
@@ -38,7 +38,7 @@ You can install and go to the course by using the following command lines.
 ```
 
 
-# FINISH SWIRL PUT IN FOLDER AND UPLOAD
+I have included a file with all of my swirl pictures in the D2L submussion. 
 
 ***
 
@@ -241,9 +241,10 @@ for (i in 1:10){
   
   posterior_prob_ii <- predict.glm(logit_model_ii_weekly_sub,Weekly,type="response")[fold.index==i] # Calculate posterior probability of market movement on ith observation
 
-      
+    # Display posterior probabilities as numeric values       
     numeric_i <- as.numeric(posterior_prob_i)
     numeric_ii <- as.numeric(posterior_prob_ii)
+    
     prediction_i <- rep(0,length(numeric_i))
     prediction_ii <- rep(0,length(numeric_ii))
     
@@ -293,8 +294,12 @@ print(paste("1 = Correct, 0 = Wrong, Model ii:", ii_list))
 
 Take the average of the 10 numbers obtained in iv in order to obtain the 10-fold CV estimate for the test error.
 
+Both models got a tester error of 8/10. 
+
 
 (e) Comment on the results. Which of the two models appears to provide the better result on this data based on the 10-fold CV estimates?
+
+Both of these models appear to give roughly the same results. 
 
 (f) cv.glm function can be used to compute the 10-fold CV test error estimate. Run the following command lines and see whether the results are the same as the ones you did in (d). If they are not the same, what's the reason?
 
@@ -308,11 +313,13 @@ glm.fit <- glm(Direction ~ Lag1 + Lag2 + I(Lag1^2) + I(Lag2^2), data = Weekly, f
 cv.error.2 <- cv.glm(Weekly, glm.fit, cost, K = 10)$delta[1]
 ```
 
+I am unsure why my values are differing. 
 
 (g) Comment on the computation costs for LOOCV and 10-fold CV. Which one is faster in your implementation in (a) and (d)?
 
-3. (20 pts) In this question, we are going to perform cross-validation methods to determine the tuning
-parameter K for KNN.
+The 10-fold CV is computationally cheaper and faster than the LOOCV. 
+
+3. (20 pts) In this question, we are going to perform cross-validation methods to determine the tuning parameter K for KNN.
 
 Consider Default data set, where we want to predict default using student, balance, and income predictors. Since student is a qualitative predictor, we want to use dummy variable for it and standardize the data using scale function. To load the Default data set and standardize the data, use the following command lines.
 
@@ -322,7 +329,6 @@ X <- Default[, c("student", "balance", "income")]
 X[,"student"] <- ifelse(X[,"student"] == "Yes", 1, 0)
 X <- scale(X)
 y <- Default[, "default"]
-y
 head(X)
 ```
 
@@ -432,7 +438,7 @@ levels(Weekly$Direction) <- c(1,0)
 levels(Weekly$Direction)
 Weekly
 
-
+# seperate loop for each k 
 
 # Write loop
 for (i in 1:10){
@@ -457,6 +463,9 @@ cv.error
 
 (e) Comment on the results. Which of the tuning parameter K's appears to provide the best results on this data based on the 10-fold CV estimates?
 
+```{r}
+print(paste("K equal to the following produces the smallest test error", which.min(cv.error)))
+```
 
 
 4. (10 pts) In this question, we are going to use the zipcode data in the HW2 Q10.
@@ -467,8 +476,6 @@ zipcode_test <- read.csv("zipcode_test.csv", header = TRUE)
 zipcode_train <- read.csv("zipcode_train.csv", header = TRUE) 
 ```
 
-
-
 Let's view the head of both these sets 
 ```{r}
 head(zipcode_test)
@@ -478,39 +485,28 @@ head(zipcode_train)
 (a) Using the zipcode_train.csv data, perform a 10-fold cross-validation using KNNs with K = 1, 2, . . . , 30 and choose the best tuning parameter K.
 
 ```{r}
+K_list2 <- c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30)
 glm.fit <- glm(Y ~ ., data = zipcode_train)
 cv.err <- cv.glm(zipcode_train, glm.fit,K=10) # the default of K is n => LOOCV
 cv.err$delta
+which.min(cv.err)
 ```
 
 ```{r}
-set.seed(1)
-cv.error <- rep(0,100)
-for (k in 1:100){ # we try 100 different k's
-  pred.class <- knn.cv(zipcode_train, zipcode_test, k = k, K = 10) # this k is for KNN not k-fold CV
-
-  cv.error[k] <- mean(pred.class != zipcode_test)
-}
-plot(1:100, cv.error, type = "b")
-```
-
-```{r}
-cv.error <- rep(0,30)
-
-i=1
-
-if (i < 31){
-  glm.fit <- glm(Y ~ .,data = zipcode_train) 
-  cv.error[i] <- cv.glm(zipcode_train, glm.fit, K = i)$delta[1]
-  i=i+1
+suppressWarnings()
+cv.error <- rep(0,30) 
+for (i in 1:30){
+  glm.fit <- glm(Y ~ ., data = zipcode_train)
+  cv.error[i] <- cv.glm(zipcode_train, glm.fit, K = 10)$delta[1] 
   } 
 cv.error
-
 ```
 
 (b) Using the zipcode_test.csv and comparing the KNN you obtained in (a) with logsitic regression and LDA, which of these methods appears to provide the best results on the test data? Is this the same conclusion that you made in HW2?
 
 (c) Using the KNN you obtained above in (a), show two of those handwritten digits that this KNN cannot identify correctly.
+
+
 
 ***
 
@@ -527,20 +523,14 @@ y=x-2*x^2+rnorm (100)
 ```
 
 ```{r}
-#Compute n and p using simulated data set 
+n=length(y)
+p=2
 ```
 
 In this data set, what is n and what is p? Write out the model used to generate the data in equation form.
 
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
-<div class = "blue">
-
-- In this data set n is:
-- And p is: 
-
-</div>
+- In this data set n is: 100
+- And p is: 2
 
 (b) Create a scatterplot of X against Y . Comment on what you finnd.
 
@@ -554,11 +544,67 @@ $$ \begin{aligned} \text { i. } Y &=\beta_{0}+\beta_{1} X+\epsilon \\ \text { ii
 
 Note you may find it helpful to use the data.frame() function to create a single data set containing both X and Y . 
 
+```{r}
+#Set up
+set.seed(1)
+Data <- data.frame(x, y)
+
+#Model i
+fit_glmi <- glm(y ~ x)
+cv.glm(Data, fit_glmi)$delta[1]
+
+#Model ii
+fit_glmii <- glm(y ~ poly(x,2))
+cv.glm(Data, fit_glmii)$delta[1]
+
+#Model iii
+fit_glmiii <- glm(y ~ poly(x,3))
+cv.glm(Data, fit_glmiii)$delta[1]
+
+fit_glmiiii <- glm(y ~ poly(x,4))
+cv.glm(Data, fit_glmiiii)$delta[1]
+
+```
+
+
 (d) Repeat (c) using another random seed, and report your results. Are your results the same as what you got in (c)? Why? 
+
+```{r}
+#Set up
+set.seed(100)
+Data <- data.frame(x, y)
+
+#Model i
+fit_glmi <- glm(y ~ x)
+cv.glm(Data, fit_glmi)$delta[1]
+
+#Model ii
+fit_glmii <- glm(y ~ poly(x,2))
+cv.glm(Data, fit_glmii)$delta[1]
+
+#Model iii
+fit_glmiii <- glm(y ~ poly(x,3))
+cv.glm(Data, fit_glmiii)$delta[1]
+
+fit_glmiiii <- glm(y ~ poly(x,4))
+cv.glm(Data, fit_glmiiii)$delta[1]
+
+```
+
+The results are exactly the same because the data (x,y) is nit changing and independant from the seed set. 
 
 (e) Which of the models in (c) had the smallest LOOCV error? Is this what you expected? Explain your answer. 
 
+-Model iii had the smallest error. This is what I expected as this equation best fits (mathematically) the shape of the line (smoothed) that I plotted on the scatter plot. If we ran an arbitrary data set N through that function that would be the roufh shape. 
+
 (f) Comment on the statistical significance of the coefficient estimates that results from fitting each of the models in (c) using least squares. Do these results agree with the conclusions drawn based on the cross-validation results?
+
+```{r}
+summary(fit_glmiii)
+fit_glmiii
+```
+
+All coefficients except $\Beta_3$ are significant. The modelis overall significant. 
 
 ***
 
@@ -566,7 +612,15 @@ Note you may find it helpful to use the data.frame() function to create a single
 
 8. In this exercise, we will generate simulated data, and will then use this data to perform best subset selection.
 
+
 (a) Use the rnorm() function to generate a predictor X of length n = 100, as well as a noise vector $\epsilon$ of length n = 100.
+
+```{r}
+set.seed(1)
+X <- rnorm(100)
+epsilon <- rnorm(100)
+```
+
 
 (b) Generate a response vector Y of length n = 100 according to the model
 
@@ -574,11 +628,69 @@ $$Y=\beta_{0}+\beta_{1} X+\beta_{2} X^{2}+\beta_{3} X^{3}+\epsilon$$
 
 where β0, β1, β2, andβ3 are constants of your choice.
 
+```{r}
+Y <- 100 + 4.5*X + 3.2*X^2 - 7.5*X^3 + epsilon
+Y
+```
+
 (c) Use the regsubsets() function to perform best subset selection in order to choose the best model containing the predictors X,X2,...,X10. What is the best model obtained according to Cp, BIC, and adjustedR2? Show some plots to provide evidence for your answer, and report the coeﬃcients of the best model obtained. Note you will need to use the data.frame() function to create a single data set containing both X and Y .
+
+```{r}
+data <- data.frame(X,Y)
+head(data)
+```
+
+```{r}
+library(leaps)
+regfit.full <- regsubsets(balance ~ . , data = data,nvmax=10) 
+summary(regfit.full)
+reg.summary <- summary(regfit.full) 
+names(reg.summary)
+reg.summary$rsq
+```
+
+```{r}
+par(mfrow=c(2,2)) 
+plot(reg.summary$rss ,xlab="Number of Variables ", ylab="RSS", type="l") 
+plot(reg.summary$adjr2 ,xlab="Number of Variables ", ylab="Adjusted RSq", type="l") 
+which.max(reg.summary$adjr2)
+```
+
+```{r}
+plot.new()
+points(11,reg.summary$adjr2[11], col = "red", cex = 2, pch = 20) 
+plot(reg.summary$cp, xlab = "Number of Variables ", ylab = "Cp", type = "l") 
+which.min(reg.summary$cp)
+points(10,reg.summary$cp[10], col = "red", cex = 2, pch = 20) 
+which.min(reg.summary$bic)
+```
+
+```{r}
+plot(reg.summary$bic, xlab = "Number of Variables ", ylab = "BIC", type = "l") 
+points(6,reg.summary$bic[6], col = "red", cex = 2, pch = 20)
+```
+
+Clearly BIC using 3 predictors is the best used model in order to minimize error.
 
 (d) Repeat (c), using forward stepwise selection and also using backwards stepwise selection. How does your answer compare to the results in (c)? 
 
+```{r}
+regfit.fwd <- regsubsets(balance ~., data = data, nvmax = 10, method = "forward") 
+summary(regfit.fwd)
+```
+
+```{r}
+regfit.bwd <- regsubsets(balance ~., data = data, nvmax = 10, method = "backward") 
+summary(regfit.bwd)
+```
+
 (e) Now ﬁt a lasso model to the simulated data, again using X,X2, ...,X10 as predictors. Use cross-validation to select the optimal value of λ. Create plots of the cross-validation error as a function of λ. Report the resulting coeﬃcient estimates, and discuss the results obtained.
+
+```{r}
+lasso_glm <- train(Y ~ X, data = data,method = 'glmnet',trControl = trainControl(method = 'cv', number = 10),tuneGrid = expand.grid(alpha = 1,lambda = seq(0.001, 0.2, by = 0.005)))
+
+plot(lasso_glm)
+```
 
 (f) Now generate a response vector Y according to the model
 
@@ -587,18 +699,6 @@ $$Y=\beta_{0}+\beta_{7} X^{7}+\epsilon$$
 and perform best subset selection and the lasso. Discuss the results obtained.
 
 ***
-
-8. In this exercise, we will generate simulated data, and will then use this data to perform best subset selection.
-
-(a) Use the rnorm() function to generate a predictor X of length n = 100, as well as a noise vector $\epsilon$ of length n = 100.
-
-(b) Generate a response vector Y of length n = 100 according to the model
-
-$Y=\beta_{0}+\beta_{1} X+\beta_{2} X^{2}+\beta_{3} X^{3}+\epsilon$
-
-where $\beta_0,\beta_1,\beta_2,\beta_3$ are constants of your choice.
-
-(c) Use the regsubsets() function to perform best subset selection in order to choose the best model containing the predictors $X,X^2,...,X^10$. What is the best model obtained according to Cp, BIC, and adjustedR2? Show some plots to provide evidence for your answer, and report the coeï¬cients of the best model obtained. Note you will need to use the data.frame() function to create a single data set containing both X and Y .
 
 7. (10 pts) In this question, we will predict the number of applications received using the other variables in the College data set.
 
